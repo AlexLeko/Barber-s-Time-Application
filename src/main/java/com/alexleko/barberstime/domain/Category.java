@@ -5,6 +5,8 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,6 +25,9 @@ public class Category implements Serializable {
     @NotNull(message = "The Name is required")
     @Column(nullable = false)
     private String name;
+
+    @ManyToMany(mappedBy = "categories")
+    private List<Product> products = new ArrayList<>();
 
     public Category(Long id, String name) {
         this.id = id;
