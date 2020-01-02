@@ -1,8 +1,8 @@
-package com.alexleko.barberstime.resource;
+package com.alexleko.barberstime.resources;
 
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
-import com.alexleko.barberstime.service.CategoryService;
+import com.alexleko.barberstime.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

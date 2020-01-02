@@ -1,9 +1,9 @@
-package com.alexleko.barberstime.service.Implementation;
+package com.alexleko.barberstime.services.Implementation;
 
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
-import com.alexleko.barberstime.repositorie.CategoryRepository;
-import com.alexleko.barberstime.service.CategoryService;
+import com.alexleko.barberstime.repositories.CategoryRepository;
+import com.alexleko.barberstime.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

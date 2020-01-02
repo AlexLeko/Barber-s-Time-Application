@@ -1,4 +1,4 @@
-package com.alexleko.barberstime.repositorie;
+package com.alexleko.barberstime.repositories;
 
 import com.alexleko.barberstime.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

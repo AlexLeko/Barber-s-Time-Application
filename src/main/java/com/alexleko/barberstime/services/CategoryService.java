@@ -1,4 +1,4 @@
-package com.alexleko.barberstime.service;
+package com.alexleko.barberstime.services;
 
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
