@@ -13,12 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "Work")
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "id")
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Product implements Serializable {
+public class Work implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -27,24 +28,24 @@ public class Product implements Serializable {
     private Long id;
 
     @Column(nullable = false)
-    @NotNull(message = "The Product Description is required")
-    @Size(min = 3, max = 200, message = "The Product Description must be between 3 and 200 characters")
+    @NotNull(message = "The Work Description is required")
+    @Size(min = 3, max = 200, message = "The Work Description must be between 3 and 200 characters")
     private String description;
 
     @Column(nullable = false)
-    @NotEmpty(message = "The Product Price is required")
-    @Positive(message = "The Product Price must be greater than zero")
+    @NotEmpty(message = "The Work Price is required")
+    @Positive(message = "The Work Price must be greater than zero")
     private Double price;
 
     @JsonIgnore
     @ManyToMany
-    @JoinTable(name = "Products_Categories",
-        joinColumns = @JoinColumn(name = "product_ID"),
+    @JoinTable(name = "Works_Categories",
+        joinColumns = @JoinColumn(name = "work_ID"),
         inverseJoinColumns = @JoinColumn(name = "category_ID"))
     private List<Category> categories = new ArrayList<>();
 
 
-    public Product(Long id, String description, Double price) {
+    public Work(Long id, String description, Double price) {
         this.id = id;
         this.description = description;
         this.price = price;
