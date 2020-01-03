@@ -15,4 +15,9 @@ public interface CategoryService {
      */
     Category insert(Category category);
 
+    /**
+     * Performs update in the database of a exist record.
+     */
+    Category update(Category category);
+
 }

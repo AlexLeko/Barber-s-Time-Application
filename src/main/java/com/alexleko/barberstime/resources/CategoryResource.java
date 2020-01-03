@@ -5,10 +5,7 @@ import com.alexleko.barberstime.dto.CategoryDTO;
 import com.alexleko.barberstime.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
@@ -37,6 +34,15 @@ public class CategoryResource {
         return ResponseEntity.created(uri).build();
     }
 
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<Void> update(@Valid @RequestBody CategoryDTO categoryDTO, @PathVariable Long id) {
+
+        Category category = categoryService.convertFromDTO(categoryDTO);
+        category.setId(id);
+        category = categoryService.update(category);
+
+        return ResponseEntity.noContent().build();
+    }
 
 
 
