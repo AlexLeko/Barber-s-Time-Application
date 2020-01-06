@@ -10,6 +10,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/v1/categories")
@@ -48,6 +50,24 @@ public class CategoryResource {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<CategoryDTO> findById(@PathVariable Long id) {
+        Category category = categoryService.findById(id);
+        CategoryDTO categoryDTO = new CategoryDTO(category);
+
+        return ResponseEntity.ok().body(categoryDTO);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<CategoryDTO>> findAll() {
+        List<Category> categories = categoryService.findAll();
+        List<CategoryDTO> listDTO = categories.stream()
+                                        .map(cat -> new CategoryDTO(cat))
+                                        .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(listDTO);
     }
 
 }

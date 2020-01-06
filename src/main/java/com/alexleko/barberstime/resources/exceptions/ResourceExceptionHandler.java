@@ -22,7 +22,7 @@ public class ResourceExceptionHandler {
         StandardError error = new StandardError(
                 System.currentTimeMillis(),
                 HttpStatus.NOT_FOUND.value(),
-                "Not Found Data",
+                "Data Not Found",
                 exc.getMessage(),
                 request.getRequestURI()
         );

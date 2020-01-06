@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service("categoryService")
@@ -27,22 +28,15 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.save(category);
     }
 
-    public Category find(Long id) {
-        Optional<Category> category = categoryRepository.findById(id);
-
-        return category.orElseThrow(() -> new ObjectNotFoundException(
-                "Category with ID: " + id + " Not Found. Type: " + Category.class.getName()));
-    }
-
     public Category update(Category category) {
-        Category newCategory = find(category.getId());
+        Category newCategory = findById(category.getId());
         newCategory.setDescription(category.getDescription());
 
         return categoryRepository.save(category);
     }
 
     public void delete(Long id) {
-        find(id);
+        findById(id);
 
         try {
             categoryRepository.deleteById(id);
@@ -50,6 +44,17 @@ public class CategoryServiceImpl implements CategoryService {
         catch (DataIntegrityViolationException ex) {
             throw new DataIntegrityViolationException("Cannot delete a Category with linked Works.");
         }
+    }
+
+    public Category findById(Long id) {
+        Optional<Category> category = categoryRepository.findById(id);
+
+        return category.orElseThrow(() -> new ObjectNotFoundException(
+                "Category with ID: " + id + " Not Found. Type: " + Category.class.getName()));
+    }
+
+    public List<Category> findAll() {
+        return categoryRepository.findAll();
     }
 
 }

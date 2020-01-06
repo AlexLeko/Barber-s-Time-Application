@@ -3,6 +3,8 @@ package com.alexleko.barberstime.services;
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
 
+import java.util.List;
+
 public interface CategoryService {
 
     /**
@@ -24,5 +26,15 @@ public interface CategoryService {
      * Performs delete in the database of a exist record, without linked works.
      */
     void delete(Long id);
+
+    /**
+     * Search the registration of a category by Id in the database.
+     */
+    Category findById(Long id);
+
+    /**
+     * Retrieve all category records in the database.
+     */
+    List<Category> findAll();
 
 }
