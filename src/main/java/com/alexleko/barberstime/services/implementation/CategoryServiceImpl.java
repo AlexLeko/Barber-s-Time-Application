@@ -6,11 +6,12 @@ import com.alexleko.barberstime.repositories.CategoryRepository;
 import com.alexleko.barberstime.services.CategoryService;
 import com.alexleko.barberstime.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Service
+@Service("categoryService")
 public class CategoryServiceImpl implements CategoryService {
 
     @Autowired
@@ -26,6 +27,13 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.save(category);
     }
 
+    public Category find(Long id) {
+        Optional<Category> category = categoryRepository.findById(id);
+
+        return category.orElseThrow(() -> new ObjectNotFoundException(
+                "Category with ID: " + id + " Not Found. Type: " + Category.class.getName()));
+    }
+
     public Category update(Category category) {
         Category newCategory = find(category.getId());
         newCategory.setDescription(category.getDescription());
@@ -33,11 +41,15 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.save(category);
     }
 
-    public Category find(Long id) {
-        Optional<Category> category = categoryRepository.findById(id);
+    public void delete(Long id) {
+        find(id);
 
-        return category.orElseThrow(() -> new ObjectNotFoundException(
-                "Category with ID: " + id + " Not Found. Type: " + Category.class.getName() ));
+        try {
+            categoryRepository.deleteById(id);
+        }
+        catch (DataIntegrityViolationException ex) {
+            throw new DataIntegrityViolationException("Cannot delete a Category with linked Works.");
+        }
     }
 
 }

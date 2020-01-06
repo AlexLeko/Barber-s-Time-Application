@@ -20,4 +20,9 @@ public interface CategoryService {
      */
     Category update(Category category);
 
+    /**
+     * Performs delete in the database of a exist record, without linked works.
+     */
+    void delete(Long id);
+
 }
