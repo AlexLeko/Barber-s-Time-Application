@@ -4,6 +4,7 @@ import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
 import com.alexleko.barberstime.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -41,7 +42,7 @@ public class CategoryResource {
 
         Category category = categoryService.convertFromDTO(categoryDTO);
         category.setId(id);
-        category = categoryService.update(category);
+        categoryService.update(category);
 
         return ResponseEntity.noContent().build();
     }
@@ -68,6 +69,21 @@ public class CategoryResource {
                                         .collect(Collectors.toList());
 
         return ResponseEntity.ok().body(listDTO);
+    }
+
+
+    @GetMapping(value = "/page")
+    public ResponseEntity<Page<CategoryDTO>> findPage(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "linesPerPage", defaultValue = "3") Integer linesPerPage,
+            @RequestParam(value = "direction", defaultValue = "ASC") String direction,
+            @RequestParam(value = "orderBy", defaultValue = "description") String orderBy
+    ) {
+
+        Page<Category> pagedCategories = categoryService.findPaged(page, linesPerPage, direction, orderBy);
+        Page<CategoryDTO> pagedListDTO = pagedCategories.map(cat -> new CategoryDTO(cat));
+
+        return ResponseEntity.ok().body(pagedListDTO);
     }
 
 }

@@ -7,6 +7,9 @@ import com.alexleko.barberstime.services.CategoryService;
 import com.alexleko.barberstime.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,6 +58,15 @@ public class CategoryServiceImpl implements CategoryService {
 
     public List<Category> findAll() {
         return categoryRepository.findAll();
+    }
+
+    public Page<Category> findPaged(Integer page, Integer linesPerPage, String direction, String orderBy) {
+        PageRequest pageRequest = PageRequest.of(   page,
+                                                    linesPerPage,
+                                                    Sort.Direction.valueOf(direction.toUpperCase()),
+                                                    orderBy);
+
+        return  categoryRepository.findAll(pageRequest);
     }
 
 }

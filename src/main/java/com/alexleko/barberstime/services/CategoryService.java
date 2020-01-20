@@ -2,6 +2,7 @@ package com.alexleko.barberstime.services;
 
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -36,5 +37,10 @@ public interface CategoryService {
      * Retrieve all category records in the database.
      */
     List<Category> findAll();
+
+    /**
+     * Search database paged category records.
+     */
+    Page<Category> findPaged(Integer page, Integer linesPerPage, String direction, String orderBy);
 
 }
