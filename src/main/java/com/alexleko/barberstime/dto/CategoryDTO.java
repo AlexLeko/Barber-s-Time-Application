@@ -16,11 +16,15 @@ import java.io.Serializable;
 public class CategoryDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private static final String CATEGORY_DESCRIPTION_REQUIRED = "The description is required";
+    private static final String CATEGORY_LENGTH_DESCRIPTION = "The Category Description must be between 3 and 80 characters";
+
+
     @EqualsAndHashCode.Include
     private Long id;
 
-    @NotNull(message = "The Name is required")
-    @Length(min = 3, max = 80, message = "The Category Description must be between 3 and 80 characters")
+    @NotNull(message = CATEGORY_DESCRIPTION_REQUIRED)
+    @Length(min = 3, max = 80, message = CATEGORY_LENGTH_DESCRIPTION)
     private String description;
 
     public CategoryDTO(Category category) {

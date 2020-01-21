@@ -22,19 +22,25 @@ import java.util.List;
 public class Work implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private static final String WORK_DESCRIPTION_REQUIRED = "The Work Description is required";
+    private static final String WORK_LENGTH_DESCRIPTION = "The Work Description must be between 3 and 200 characters";
+    private static final String WORK_PRICE_REQUIRED = "The Work Price is required";
+    private static final String WORK_PRICE_GREATER_ZERO = "The Work Price must be greater than zero";
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false)
-    @NotNull(message = "The Work Description is required")
-    @Size(min = 3, max = 200, message = "The Work Description must be between 3 and 200 characters")
+    @NotNull(message = WORK_DESCRIPTION_REQUIRED)
+    @Size(min = 3, max = 200, message = WORK_LENGTH_DESCRIPTION)
     private String description;
 
     @Column(nullable = false)
-    @NotEmpty(message = "The Work Price is required")
-    @Positive(message = "The Work Price must be greater than zero")
+    @NotEmpty(message = WORK_PRICE_REQUIRED)
+    @Positive(message = WORK_PRICE_GREATER_ZERO)
     private Double price;
 
     @JsonIgnore
