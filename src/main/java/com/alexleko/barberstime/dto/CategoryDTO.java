@@ -3,6 +3,7 @@ package com.alexleko.barberstime.dto;
 import com.alexleko.barberstime.domain.Category;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
@@ -13,7 +14,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @ToString(exclude = "id")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class CategoryDTO implements Serializable {
+public class CategoryDTO extends RepresentationModel<CategoryDTO> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final String CATEGORY_DESCRIPTION_REQUIRED = "The description is required";
