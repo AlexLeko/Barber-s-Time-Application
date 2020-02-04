@@ -2,7 +2,8 @@ package com.alexleko.barberstime.resources;
 
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
-import com.alexleko.barberstime.resources.hateoas.PresentsResourcesDTO;
+import com.alexleko.barberstime.resources.enumerators.ActionTypeFromRequest;
+import com.alexleko.barberstime.resources.hateoas.PresentsHateoasResourcesDTO;
 import com.alexleko.barberstime.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,22 +24,31 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping(value = "/v1/categories", produces = { MediaType.APPLICATION_JSON_VALUE } )
+@RequestMapping(value = "/v1/categories")
 public class CategoryResource {
 
     @Autowired
     private CategoryService categoryService;
 
     @RequestMapping(method = RequestMethod.OPTIONS)
-    public ResponseEntity<PresentsResourcesDTO> collectionOptions() {
+    public ResponseEntity<PresentsHateoasResourcesDTO> collectionOptions() {
 
-        PresentsResourcesDTO presentation = new PresentsResourcesDTO(String.format(CategoryResource.class.getSimpleName()));
-        presentation.add(linkTo(methodOn(CategoryResource.class)
-                        .collectionOptions()).withSelfRel())
-                    .add(linkTo(methodOn(CategoryResource.class)
-                        .findAll()).withRel("all"))
-                    .add(linkTo(methodOn(CategoryResource.class)
-                        .findPage(null, null, null, null)).withRel("paged"));;
+        PresentsHateoasResourcesDTO presentation =
+                new PresentsHateoasResourcesDTO(String.format(CategoryResource.class.getSimpleName()));
+
+        presentation
+            .add(linkTo(methodOn(CategoryResource.class)
+                .collectionOptions())
+                .withSelfRel()
+                .withType(HttpMethod.OPTIONS.toString()))
+            .add(linkTo(methodOn(CategoryResource.class)
+                .findAll())
+                .withRel(ActionTypeFromRequest.FIND_All.getAction())
+                .withType(HttpMethod.GET.toString()))
+            .add(linkTo(methodOn(CategoryResource.class)
+                .findPage(null, null, null, null))
+                .withRel(ActionTypeFromRequest.FIND_PAGED.getAction())
+                .withType(HttpMethod.GET.toString()));
 
         return ResponseEntity.ok()
                 .allow(HttpMethod.GET, HttpMethod.OPTIONS)
@@ -46,29 +56,44 @@ public class CategoryResource {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.OPTIONS)
-    public ResponseEntity<PresentsResourcesDTO> singleOptions(@PathVariable Long id) {
+    public ResponseEntity<PresentsHateoasResourcesDTO> singleOptions(@PathVariable Long id) {
 
-        PresentsResourcesDTO presentation = new PresentsResourcesDTO(String.format(CategoryResource.class.getSimpleName()));
-        presentation.add(linkTo(methodOn(CategoryResource.class)
-                .singleOptions(id)).withSelfRel());
+        PresentsHateoasResourcesDTO presentation = new PresentsHateoasResourcesDTO(String.format(CategoryResource.class.getSimpleName()));
+        presentation
+            .add(linkTo(methodOn(CategoryResource.class)
+                .singleOptions(id))
+                .withSelfRel()
+                .withType(HttpMethod.OPTIONS.toString()));
 
-            Link findLink = linkTo(methodOn(CategoryResource.class)
-                        .findById(id)).withRel("find");
+        Link findLink = linkTo(methodOn(CategoryResource.class)
+                .findById(id))
+                .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())
+                .withType(HttpMethod.GET.toString());
 
-            Link insertLink = linkTo(methodOn(CategoryResource.class)
-                        .insert(new CategoryDTO())).withRel("insert");
+        Link insertLink = linkTo(methodOn(CategoryResource.class)
+                .insert(new CategoryDTO()))
+                .withRel(ActionTypeFromRequest.INSERT.getAction())
+                .withType(HttpMethod.POST.toString());
 
-            Link updateLink = linkTo(methodOn(CategoryResource.class)
-                        .update(new CategoryDTO(), id)).withRel("update");
+        Link updateLink = linkTo(methodOn(CategoryResource.class)
+                .update(new CategoryDTO(), id))
+                .withRel(ActionTypeFromRequest.UPDATE.getAction())
+                .withType(HttpMethod.PUT.toString());
 
-            presentation.add(Arrays.asList(findLink, insertLink, updateLink));
+        Link deleteLink = linkTo(methodOn(CategoryResource.class)
+                .delete(id))
+                .withRel(ActionTypeFromRequest.DELETE.getAction())
+                .withType(HttpMethod.DELETE.toString());
+
+        presentation.add(Arrays.asList(findLink, insertLink, updateLink, deleteLink));
 
         return ResponseEntity.ok()
                 .allow(HttpMethod.GET, HttpMethod.DELETE, HttpMethod.PUT, HttpMethod.OPTIONS)
                 .body(presentation);
     }
 
-    @PostMapping()
+    @PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE },
+                    consumes = { MediaType.APPLICATION_JSON_VALUE }  )
     public ResponseEntity<CategoryDTO> insert(@Valid @RequestBody final CategoryDTO paramCategoryDTO) {
 
         Category category = categoryService.convertFromDTO(paramCategoryDTO);
@@ -78,7 +103,8 @@ public class CategoryResource {
         categoryDTO.add(
                 linkTo(methodOn(CategoryResource.class)
                     .findById(categoryDTO.getId()))
-                    .withSelfRel());
+                    .withSelfRel()
+                    .withType(HttpMethod.GET.toString()));
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -88,20 +114,22 @@ public class CategoryResource {
         return ResponseEntity.created(uri).body(categoryDTO);
     }
 
-    @PutMapping(value = "/{id}")
-    public ResponseEntity<Void> update(@Valid @RequestBody CategoryDTO paramCategoryDTO, @PathVariable Long id) {
+    @PutMapping(value = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE },
+                                    consumes = { MediaType.APPLICATION_JSON_VALUE } )
+    public ResponseEntity<PresentsHateoasResourcesDTO> update(@Valid @RequestBody CategoryDTO paramCategoryDTO, @PathVariable Long id) {
 
         Category category = categoryService.convertFromDTO(paramCategoryDTO);
         category.setId(id);
         categoryService.update(category);
 
-        CategoryDTO categoryDTO = new CategoryDTO(category);
+        PresentsHateoasResourcesDTO categoryDTO = new PresentsHateoasResourcesDTO(String.format(CategoryResource.class.getSimpleName()));
         categoryDTO.add(
                 linkTo(methodOn(CategoryResource.class)
                     .findById(id))
-                    .withSelfRel());
+                    .withSelfRel()
+                    .withType(HttpMethod.GET.toString()));
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().body(categoryDTO);
     }
 
     @DeleteMapping(value = "/{id}")
@@ -110,7 +138,7 @@ public class CategoryResource {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE } )
     public ResponseEntity<CategoryDTO> findById(@PathVariable Long id) {
         Category category = categoryService.findById(id);
         CategoryDTO categoryDTO = new CategoryDTO(category);
@@ -118,27 +146,30 @@ public class CategoryResource {
         categoryDTO.add(
                 linkTo(methodOn(CategoryResource.class)
                     .findById(id))
-                    .withSelfRel());
+                    .withSelfRel()
+                    .withType(HttpMethod.GET.toString()));
 
         return ResponseEntity.ok().body(categoryDTO);
     }
 
-    @GetMapping()
+    @GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE } )
     public ResponseEntity<List<CategoryDTO>> findAll() {
         List<Category> categories = categoryService.findAll();
         List<CategoryDTO> listDTO = categories.stream()
                                         .map(cat -> new CategoryDTO(cat))
                                         .collect(Collectors.toList());
 
-        listDTO.stream().forEach(cat ->
-                        cat.add(linkTo(methodOn(CategoryResource.class)
-                                .findById(cat.getId()))
-                                .withSelfRel()));
+        listDTO.stream()
+                .forEach(cat ->
+                    cat.add(linkTo(methodOn(CategoryResource.class)
+                            .findById(cat.getId()))
+                            .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())
+                                .withType(HttpMethod.GET.toString())));
 
         return ResponseEntity.ok().body(listDTO);
     }
 
-    @GetMapping(value = "/page")
+    @GetMapping(value = "/page", produces = { MediaType.APPLICATION_JSON_VALUE } )
     public ResponseEntity<Page<CategoryDTO>> findPage(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "linesPerPage", defaultValue = "3") Integer linesPerPage,
@@ -149,10 +180,12 @@ public class CategoryResource {
         Page<Category> pagedCategories = categoryService.findPaged(page, linesPerPage, direction, orderBy);
         Page<CategoryDTO> pagedListDTO = pagedCategories.map(cat -> new CategoryDTO(cat));
 
-        pagedListDTO.stream().forEach(cat ->
-                        cat.add(linkTo(methodOn(CategoryResource.class)
-                            .findById(cat.getId()))
-                            .withSelfRel()));
+        pagedListDTO.stream()
+                .forEach(cat ->
+                    cat.add(linkTo(methodOn(CategoryResource.class)
+                        .findById(cat.getId()))
+                        .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())
+                        .withType(HttpMethod.GET.toString())));
 
         return ResponseEntity.ok().body(pagedListDTO);
     }

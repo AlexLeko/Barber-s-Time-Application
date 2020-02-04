@@ -6,12 +6,12 @@ import lombok.Getter;
 import org.springframework.hateoas.RepresentationModel;
 
 @Getter
-public class PresentsResourcesDTO extends RepresentationModel<PresentsResourcesDTO> {
+public class PresentsHateoasResourcesDTO extends RepresentationModel<PresentsHateoasResourcesDTO> {
 
     private final String content;
 
     @JsonCreator
-    public PresentsResourcesDTO(@JsonProperty("content") String content) {
+    public PresentsHateoasResourcesDTO(@JsonProperty("content") String content) {
         this.content = content;
     }
 
