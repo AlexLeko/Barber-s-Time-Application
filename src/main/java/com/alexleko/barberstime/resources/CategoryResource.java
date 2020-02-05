@@ -39,16 +39,13 @@ public class CategoryResource {
         presentation
             .add(linkTo(methodOn(CategoryResource.class)
                 .collectionOptions())
-                .withSelfRel()
-                .withType(HttpMethod.OPTIONS.toString()))
+                .withSelfRel())
             .add(linkTo(methodOn(CategoryResource.class)
                 .findAll())
-                .withRel(ActionTypeFromRequest.FIND_All.getAction())
-                .withType(HttpMethod.GET.toString()))
+                .withRel(ActionTypeFromRequest.FIND_All.getAction()))
             .add(linkTo(methodOn(CategoryResource.class)
                 .findPage(null, null, null, null))
-                .withRel(ActionTypeFromRequest.FIND_PAGED.getAction())
-                .withType(HttpMethod.GET.toString()));
+                .withRel(ActionTypeFromRequest.FIND_PAGED.getAction()));
 
         return ResponseEntity.ok()
                 .allow(HttpMethod.GET, HttpMethod.OPTIONS)
@@ -62,28 +59,23 @@ public class CategoryResource {
         presentation
             .add(linkTo(methodOn(CategoryResource.class)
                 .singleOptions(id))
-                .withSelfRel()
-                .withType(HttpMethod.OPTIONS.toString()));
+                .withSelfRel());
 
         Link findLink = linkTo(methodOn(CategoryResource.class)
                 .findById(id))
-                .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())
-                .withType(HttpMethod.GET.toString());
+                .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction());
 
         Link insertLink = linkTo(methodOn(CategoryResource.class)
                 .insert(new CategoryDTO()))
-                .withRel(ActionTypeFromRequest.INSERT.getAction())
-                .withType(HttpMethod.POST.toString());
+                .withRel(ActionTypeFromRequest.INSERT.getAction());
 
         Link updateLink = linkTo(methodOn(CategoryResource.class)
                 .update(new CategoryDTO(), id))
-                .withRel(ActionTypeFromRequest.UPDATE.getAction())
-                .withType(HttpMethod.PUT.toString());
+                .withRel(ActionTypeFromRequest.UPDATE.getAction());
 
         Link deleteLink = linkTo(methodOn(CategoryResource.class)
                 .delete(id))
-                .withRel(ActionTypeFromRequest.DELETE.getAction())
-                .withType(HttpMethod.DELETE.toString());
+                .withRel(ActionTypeFromRequest.DELETE.getAction());
 
         presentation.add(Arrays.asList(findLink, insertLink, updateLink, deleteLink));
 
@@ -103,8 +95,7 @@ public class CategoryResource {
         categoryDTO.add(
                 linkTo(methodOn(CategoryResource.class)
                     .findById(categoryDTO.getId()))
-                    .withSelfRel()
-                    .withType(HttpMethod.GET.toString()));
+                    .withSelfRel());
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -126,8 +117,7 @@ public class CategoryResource {
         categoryDTO.add(
                 linkTo(methodOn(CategoryResource.class)
                     .findById(id))
-                    .withSelfRel()
-                    .withType(HttpMethod.GET.toString()));
+                    .withSelfRel());
 
         return ResponseEntity.ok().body(categoryDTO);
     }
@@ -146,8 +136,7 @@ public class CategoryResource {
         categoryDTO.add(
                 linkTo(methodOn(CategoryResource.class)
                     .findById(id))
-                    .withSelfRel()
-                    .withType(HttpMethod.GET.toString()));
+                    .withSelfRel());
 
         return ResponseEntity.ok().body(categoryDTO);
     }
@@ -162,9 +151,8 @@ public class CategoryResource {
         listDTO.stream()
                 .forEach(cat ->
                     cat.add(linkTo(methodOn(CategoryResource.class)
-                            .findById(cat.getId()))
-                            .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())
-                                .withType(HttpMethod.GET.toString())));
+                        .findById(cat.getId()))
+                        .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())));
 
         return ResponseEntity.ok().body(listDTO);
     }
@@ -184,8 +172,7 @@ public class CategoryResource {
                 .forEach(cat ->
                     cat.add(linkTo(methodOn(CategoryResource.class)
                         .findById(cat.getId()))
-                        .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())
-                        .withType(HttpMethod.GET.toString())));
+                        .withRel(ActionTypeFromRequest.FIND_BY_ID.getAction())));
 
         return ResponseEntity.ok().body(pagedListDTO);
     }
