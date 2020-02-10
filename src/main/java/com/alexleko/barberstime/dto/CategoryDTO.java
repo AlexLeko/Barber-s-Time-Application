@@ -3,6 +3,8 @@ package com.alexleko.barberstime.dto;
 import com.alexleko.barberstime.domain.Category;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.hateoas.RepresentationModel;
@@ -22,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
 @JsonInclude(NON_NULL)
 @JsonRootName(value = "category")
 @Relation(collectionRelation = "categories", itemRelation = "category")
+@ApiModel(description = "Category Features")
 public class CategoryDTO extends RepresentationModel<CategoryDTO> implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -30,10 +33,12 @@ public class CategoryDTO extends RepresentationModel<CategoryDTO> implements Ser
 
 
     @EqualsAndHashCode.Include
+    @ApiModelProperty( notes = "Database-generated id for Category" )
     private Long id;
 
     @NotNull(message = CATEGORY_DESCRIPTION_REQUIRED)
     @Length(min = 3, max = 80, message = CATEGORY_LENGTH_DESCRIPTION)
+    @ApiModelProperty( notes = "This is the name of the category" )
     private String description;
 
     public CategoryDTO(Category category) {

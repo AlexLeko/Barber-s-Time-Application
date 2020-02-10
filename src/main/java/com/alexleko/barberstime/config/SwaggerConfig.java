@@ -11,6 +11,7 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.service.Header;
 import springfox.documentation.service.ResponseMessage;
 import springfox.documentation.spi.DocumentationType;
@@ -29,9 +30,15 @@ public class SwaggerConfig {
 
     // Api Documentation Info
     private static final String RESOURCES = "com.alexleko.barberstime.resources";
+
     private static final String INFO_TITLE = "Api Documentation Barber's Time";
     private static final String INFO_DESCRIPTION = "Barber's Time store management API";
     private static final String INFO_API_VERSION = "1.0";
+
+    // Contacts Info
+    private static final String INFO_CONTACT_NAME = "Alex DS";
+    private static final String INFO_CONTACT_URL = "https://github.com/AlexLeko";
+    private static final String INFO_CONTACT_MAIL = "lk.alexds@gmail.com";
 
     // Global Messages
     private static final String MSG_UPDATE = "Updated";
@@ -67,15 +74,16 @@ public class SwaggerConfig {
 
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage(RESOURCES))
-                .paths(PathSelectors.any())
-                .build();
+                    .apis(RequestHandlerSelectors.basePackage(RESOURCES))
+                    .paths(PathSelectors.any())
+                    .build();
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title(INFO_TITLE)
                 .description(INFO_DESCRIPTION)
+                .contact(new Contact(INFO_CONTACT_NAME, INFO_CONTACT_URL, INFO_CONTACT_MAIL))
                 .version(INFO_API_VERSION)
                 .build();
     }

@@ -6,6 +6,7 @@ import com.alexleko.barberstime.resources.enumerators.ActionTypeFromRequest;
 import com.alexleko.barberstime.resources.hateoas.PresentsHateoasResourcesDTO;
 import com.alexleko.barberstime.services.CategoryService;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,8 @@ public class CategoryResource {
     @Autowired
     private CategoryService categoryService;
 
-    @ApiOperation("Information about category collection features")
+    @ApiOperation(value = "Information about category collection features",
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     @RequestMapping(method = RequestMethod.OPTIONS)
     public ResponseEntity<PresentsHateoasResourcesDTO> collectionOptions() {
 
@@ -56,9 +58,12 @@ public class CategoryResource {
                 .body(presentation);
     }
 
-    @ApiOperation("Information about category features")
+    @ApiOperation(value = "Information about category features",
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     @RequestMapping(value = "/{id}", method = RequestMethod.OPTIONS)
-    public ResponseEntity<PresentsHateoasResourcesDTO> singleOptions(@PathVariable Long id) {
+    public ResponseEntity<PresentsHateoasResourcesDTO> singleOptions(
+            @ApiParam(value = "Category ID to query the resources of a Category", required = true)
+                @PathVariable Long id) {
 
         PresentsHateoasResourcesDTO presentation = new PresentsHateoasResourcesDTO(String.format(CategoryResource.class.getSimpleName()));
         presentation
@@ -89,10 +94,14 @@ public class CategoryResource {
                 .body(presentation);
     }
 
-    @ApiOperation("Add a new category")
+    @ApiOperation(value = "Add a new category",
+                    produces = MediaType.APPLICATION_JSON_VALUE,
+                    consumes = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE },
                     consumes = { MediaType.APPLICATION_JSON_VALUE }  )
-    public ResponseEntity<CategoryDTO> insert(@Valid @RequestBody final CategoryDTO paramCategoryDTO) {
+    public ResponseEntity<CategoryDTO> insert(
+            @ApiParam(value = "Data of a new Category that will be registered in the database", required = true)
+                @Valid @RequestBody final CategoryDTO paramCategoryDTO) {
 
         Category category = categoryService.convertFromDTO(paramCategoryDTO);
         category = categoryService.insert(category);
@@ -111,10 +120,16 @@ public class CategoryResource {
         return ResponseEntity.created(uri).body(categoryDTO);
     }
 
-    @ApiOperation("Update a category")
+    @ApiOperation(value = "Update a category",
+                    produces = MediaType.APPLICATION_JSON_VALUE,
+                    consumes = MediaType.APPLICATION_JSON_VALUE)
     @PutMapping(value = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE },
                                     consumes = { MediaType.APPLICATION_JSON_VALUE } )
-    public ResponseEntity<PresentsHateoasResourcesDTO> update(@Valid @RequestBody CategoryDTO paramCategoryDTO, @PathVariable Long id) {
+    public ResponseEntity<PresentsHateoasResourcesDTO> update(
+            @ApiParam( value="Category data to be updated in the database", required = true)
+                @Valid @RequestBody CategoryDTO paramCategoryDTO,
+            @ApiParam( value="Category ID to be updated", required = true)
+                @PathVariable Long id) {
 
         Category category = categoryService.convertFromDTO(paramCategoryDTO);
         category.setId(id);
@@ -129,20 +144,24 @@ public class CategoryResource {
         return ResponseEntity.ok().body(categoryDTO);
     }
 
-    @ApiOperation("Delete a category")
+    @ApiOperation(value = "Delete a category", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = "Could not delete a category with works"),
             @ApiResponse(code = 404, message = "Invalid ID")
     })
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @ApiParam( value="Category ID to be deleted", required = true)
+                @PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @ApiOperation("Retrieve a category by id")
+    @ApiOperation(value = "Retrieve a category by id", produces = MediaType.APPLICATION_JSON_VALUE )
     @GetMapping(value = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE } )
-    public ResponseEntity<CategoryDTO> findById(@PathVariable Long id) {
+    public ResponseEntity<CategoryDTO> findById(
+            @ApiParam(value = "Category ID to be retrieved", required = true)
+                @PathVariable Long id) {
         Category category = categoryService.findById(id);
         CategoryDTO categoryDTO = new CategoryDTO(category);
 
@@ -154,7 +173,9 @@ public class CategoryResource {
         return ResponseEntity.ok().body(categoryDTO);
     }
 
-    @ApiOperation(value = "Retrieve all categories", notes = "Note on all categories search feature")
+    @ApiOperation(value = "Retrieve all categories",
+                    notes = "Note on all categories search feature",
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE } )
     public ResponseEntity<List<CategoryDTO>> findAll() {
         List<Category> categories = categoryService.findAll();
@@ -171,13 +192,17 @@ public class CategoryResource {
         return ResponseEntity.ok().body(listDTO);
     }
 
-    @ApiOperation("Retrieve categories with pagination")
+    @ApiOperation(value = "Retrieve categories with pagination", produces = MediaType.APPLICATION_JSON_VALUE )
     @GetMapping(value = "/page", produces = { MediaType.APPLICATION_JSON_VALUE } )
     public ResponseEntity<Page<CategoryDTO>> findPage(
-            @RequestParam(value = "page", defaultValue = "0") Integer page,
-            @RequestParam(value = "linesPerPage", defaultValue = "3") Integer linesPerPage,
-            @RequestParam(value = "direction", defaultValue = "ASC") String direction,
-            @RequestParam(value = "orderBy", defaultValue = "description") String orderBy
+            @ApiParam(value = "Pagination start page", required = false)
+                @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @ApiParam(value = "Number of records listed on the pagination", required = false)
+                @RequestParam(value = "linesPerPage", defaultValue = "3") Integer linesPerPage,
+            @ApiParam(value = "Pagination ordering", required = false)
+                @RequestParam(value = "direction", defaultValue = "ASC") String direction,
+            @ApiParam(value = "Priority field for pagination ordering", required = false)
+                @RequestParam(value = "orderBy", defaultValue = "description") String orderBy
     ) {
 
         Page<Category> pagedCategories = categoryService.findPaged(page, linesPerPage, direction, orderBy);
