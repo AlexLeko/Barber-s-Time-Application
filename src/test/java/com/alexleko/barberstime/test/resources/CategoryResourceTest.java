@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static com.alexleko.barberstime.test.builders.dto.CategoryDTOBuilder.mockCategoryDTO;
+import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.mockCategory;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -39,41 +41,31 @@ public class CategoryResourceTest {
 
     @Test
     @DisplayName("Should create a new category")
-    public void createMockTest() throws Exception {
-        // cenario
-        String description = "teste";
+    public void createCategoryTest() throws Exception {
+        CategoryDTO dto = mockCategoryDTO().build();
+        Category category = mockCategory().WithId(99L).build();
 
-        CategoryDTO dto = new CategoryDTO();
-        dto.setDescription(description);
-        dto.removeLinks();
-
-        Category category = new Category();
-        category.setId(99L);
-        category.setDescription(description);
-
-        BDDMockito.given(categoryService.convertFromDTO(Mockito.any(CategoryDTO.class)))
+        BDDMockito.given(
+                categoryService.convertFromDTO(Mockito.any(CategoryDTO.class)))
                 .willReturn(new Category());
 
-        BDDMockito.given(categoryService.insert(Mockito.any(Category.class)))
+        BDDMockito.given(
+                categoryService.insert(Mockito.any(Category.class)))
                 .willReturn(category);
 
         String json = new ObjectMapper().writeValueAsString(dto);
-//                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-//                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-//                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
 
-        // ação
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(CATEGORY_URN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
 
-        // verificação
         mvc.perform(request)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").value(category.getId()))
                 .andExpect(jsonPath("description").value(category.getDescription()));
     }
+
 
 }
