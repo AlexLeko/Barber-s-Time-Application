@@ -41,7 +41,7 @@ public class CategoryResourceTest {
 
     @Test
     @DisplayName("Should create a new category")
-    public void createCategoryTest() throws Exception {
+    public void insertCategoryTest() throws Exception {
         CategoryDTO dto = mockCategoryDTO().build();
         Category category = mockCategory().WithId(99L).build();
 
