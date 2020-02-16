@@ -14,14 +14,11 @@ import org.springframework.stereotype.Component;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
-
 @Component
 @Getter @Setter
 @NoArgsConstructor
 @ToString(exclude = "id")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@JsonInclude(NON_NULL)
 @JsonRootName(value = "category")
 @Relation(collectionRelation = "categories", itemRelation = "category")
 @ApiModel(description = "Category Features")
@@ -31,7 +28,7 @@ public class CategoryDTO extends RepresentationModel<CategoryDTO> implements Ser
     private static final String CATEGORY_DESCRIPTION_REQUIRED = "The description is required";
     private static final String CATEGORY_LENGTH_DESCRIPTION = "The Category Description must be between 3 and 80 characters";
 
-
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @EqualsAndHashCode.Include
     @ApiModelProperty( notes = "Database-generated id for Category" )
     private Long id;
