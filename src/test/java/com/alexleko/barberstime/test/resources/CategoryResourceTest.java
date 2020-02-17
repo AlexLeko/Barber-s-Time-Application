@@ -4,6 +4,7 @@ import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
 import com.alexleko.barberstime.resources.CategoryResource;
 import com.alexleko.barberstime.services.CategoryService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ public class CategoryResourceTest {
 
     private static final String CATEGORY_URN = "/v1/categories";
 
+
     @Autowired
     MockMvc mvc;
 
@@ -42,6 +44,7 @@ public class CategoryResourceTest {
     @Test
     @DisplayName("Should create a new category")
     public void insertCategoryTest() throws Exception {
+
         CategoryDTO dto = mockCategoryDTO().build();
         Category category = mockCategory().WithId(99L).build();
 
@@ -66,6 +69,23 @@ public class CategoryResourceTest {
                 .andExpect(jsonPath("id").value(category.getId()))
                 .andExpect(jsonPath("description").value(category.getDescription()));
     }
+
+    @Test
+    @DisplayName("Should throw Exception when the CategoryDTO's body be invalid")
+    public void ShouldThrowExceptionWhenCategoryDTOInvalid() throws JsonProcessingException {
+        CategoryDTO dto = mockCategoryDTO().build();
+
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .post(CATEGORY_URN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+
+    }
+
 
 
 }
