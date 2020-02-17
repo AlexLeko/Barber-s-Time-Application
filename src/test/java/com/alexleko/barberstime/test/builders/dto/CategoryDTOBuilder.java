@@ -26,4 +26,9 @@ public class CategoryDTOBuilder {
         return this;
     }
 
+    public CategoryDTOBuilder withEmptyDescription() {
+        categoryDTO.setDescription("");
+        return this;
+    }
+
 }
