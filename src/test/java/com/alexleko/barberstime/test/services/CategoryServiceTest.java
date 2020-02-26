@@ -2,6 +2,8 @@ package com.alexleko.barberstime.test.services;
 
 import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.repositories.CategoryRepository;
+import com.alexleko.barberstime.services.exceptions.BusinessException;
+import com.alexleko.barberstime.services.exceptions.ServiceExceptionControl;
 import com.alexleko.barberstime.services.implementation.CategoryServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,10 +13,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.Assert;
 
 import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.mockCategory;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -27,11 +29,15 @@ public class CategoryServiceTest {
     CategoryRepository categoryRepository;
 
     @Test
-    @DisplayName("Should create a new category")
+    @DisplayName("Deve criar uma nova categoria")
     public void insertCategoryTest() {
 
         Category category = mockCategory().build();
         Category saved = mockCategory().WithId(99L).build();
+
+        Mockito.when(
+                categoryRepository.existsByDescription(Mockito.anyString()))
+                .thenReturn(false);
 
         Mockito.doReturn(saved)
                 .when(categoryRepository)
@@ -44,7 +50,7 @@ public class CategoryServiceTest {
     }
 
     @Test
-    @DisplayName("Should create a new category when Category Id param is not null")
+    @DisplayName("Deve criar uma nova categoria mesmo quando o ID não for null")
     public void shouldCreateCategoryWhenCategoryIdNull() {
 
         Category catParam = mockCategory().WithId(22L).build();
@@ -58,6 +64,24 @@ public class CategoryServiceTest {
         assertThat(catParam.getId()).isNull();
         assertThat(category.getId()).isNotNull();
         assertThat(category.getId()).isNotEqualTo(catParam.getId());
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro de negócio ao tentar salvar uma categoria já existente")
+    public void shouldThrowBusinessExceptionWhenTryInsertCategoryDuplicate() {
+        Category category = mockCategory().build();
+
+        Mockito.when(
+                categoryRepository.existsByDescription(Mockito.anyString()))
+                .thenReturn(true);
+
+        Throwable exception = catchThrowable(() -> categoryService.insert(category));
+
+        assertThat(exception)
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ServiceExceptionControl.EXISTING_CATEGORY.getMessage());
+
+        Mockito.verify(categoryRepository, Mockito.never()).save(category);
     }
 
 

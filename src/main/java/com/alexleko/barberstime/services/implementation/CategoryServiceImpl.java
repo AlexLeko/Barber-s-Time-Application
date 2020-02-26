@@ -4,6 +4,7 @@ import com.alexleko.barberstime.domain.Category;
 import com.alexleko.barberstime.dto.CategoryDTO;
 import com.alexleko.barberstime.repositories.CategoryRepository;
 import com.alexleko.barberstime.services.CategoryService;
+import com.alexleko.barberstime.services.exceptions.BusinessException;
 import com.alexleko.barberstime.services.exceptions.ObjectNotFoundException;
 import com.alexleko.barberstime.services.exceptions.ServiceExceptionControl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     public Category insert(Category category) {
+        if (categoryRepository.existsByDescription(category.getDescription())) {
+            throw new BusinessException(ServiceExceptionControl.EXISTING_CATEGORY.getMessage());
+        }
+
         category.setId(null);
         return categoryRepository.save(category);
     }

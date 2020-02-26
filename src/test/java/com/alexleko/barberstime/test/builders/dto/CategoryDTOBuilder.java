@@ -26,8 +26,8 @@ public class CategoryDTOBuilder {
         return this;
     }
 
-    public CategoryDTOBuilder withEmptyDescription() {
-        categoryDTO.setDescription("");
+    public CategoryDTOBuilder WithDescription(String description){
+        categoryDTO.setDescription(description);
         return this;
     }
 

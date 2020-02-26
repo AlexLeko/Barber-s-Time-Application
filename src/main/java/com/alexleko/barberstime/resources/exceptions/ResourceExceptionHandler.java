@@ -1,5 +1,6 @@
 package com.alexleko.barberstime.resources.exceptions;
 
+import com.alexleko.barberstime.services.exceptions.BusinessException;
 import com.alexleko.barberstime.services.exceptions.DataIntegrityException;
 import com.alexleko.barberstime.services.exceptions.ObjectNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,6 +19,7 @@ public class ResourceExceptionHandler {
     private static final String DATA_NOT_FOUND = "Data Not Found";
     private static final String DATA_INTEGRITY = "Data Integrity";
     private static final String VALIDATION_ERROR = "Request field With Validation Error";
+    private static final String INSERT_DUPLICATE = "Attempt insert duplicate";
 
     /**
      * Exception handling for data not found in request.
@@ -70,6 +73,20 @@ public class ResourceExceptionHandler {
         }
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<StandardError> insertDuplicate(BusinessException exc, HttpServletRequest request) {
+        StandardError error = new StandardError(
+                System.currentTimeMillis(),
+                HttpStatus.BAD_REQUEST.value(),
+                INSERT_DUPLICATE,
+                exc.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
 }
