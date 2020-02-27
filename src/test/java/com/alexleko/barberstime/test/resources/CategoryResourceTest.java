@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class CategoryResourceTest {
 
+    private static final String LOCALHOST = "http://localhost";
     private static final String CATEGORY_URN = "/v1/categories";
 
     private static final String CATEGORY_ID = "id";
@@ -43,6 +44,8 @@ public class CategoryResourceTest {
     private static final String EXCEPTION_ERROR = "error";
     private static final String EXCEPTION_MESSAGE = "message";
 
+    private static final String HATEOAS_SELF_HREF = "_links.self.href";
+
 
     @Autowired
     MockMvc mvc;
@@ -50,6 +53,17 @@ public class CategoryResourceTest {
     @MockBean
     CategoryService categoryService;
 
+
+    /*{
+        "id": 1,
+        "description": "teste",
+        "_links": {
+            "self": {
+                "href": "http://localhost:8080/v1/categories/1"
+            }
+        }
+      }
+    */
     @Test
     @DisplayName("Deve criar uma nova categoria")
     public void shouldCreateNewCategory() throws Exception {
@@ -69,6 +83,7 @@ public class CategoryResourceTest {
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(CATEGORY_URN)
+                .characterEncoding("utf-8")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
@@ -76,9 +91,8 @@ public class CategoryResourceTest {
         mvc.perform(request)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(CATEGORY_ID).value(category.getId()))
-                .andExpect(jsonPath(CATEGORY_DESCRIPTION).value(category.getDescription()));
-
-        // todo: Implementar validações do HATEOAS.
+                .andExpect(jsonPath(CATEGORY_DESCRIPTION).value(category.getDescription()))
+                .andExpect(jsonPath(HATEOAS_SELF_HREF, is(LOCALHOST.concat(CATEGORY_URN + "/" + category.getId().toString()))));
     }
 
     @Test
@@ -127,8 +141,7 @@ public class CategoryResourceTest {
         verify(categoryService, never()).insert(category);
     }
 
-    /*
-        {
+    /* {
             "timeStamp": 1582742292340,
             "status": 400,
             "error": "Attempt insert duplicate",
@@ -167,6 +180,39 @@ public class CategoryResourceTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(EXCEPTION_ERROR).value(errorTitle))
                 .andExpect(jsonPath(EXCEPTION_MESSAGE).value(mensagem));
+    }
+
+
+    /* {
+            "id": 1,
+            "description": "teste",
+            "_links": {
+                "self": {
+                    "href": "http://localhost:8080/v1/categories/1"
+                }
+            }
+        }
+    */
+    @Test
+    @DisplayName("Deve recuperar uma Categoria pelo ID")
+    public void shouldRetrieverCategoryById() throws Exception {
+
+        Long id = 99L;
+        Category category = mockCategory().WithId(id).build();
+
+        BDDMockito.given(
+                categoryService.findById(id))
+                .willReturn(category);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(CATEGORY_URN.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(CATEGORY_ID).value(category.getId()))
+                .andExpect(jsonPath(CATEGORY_DESCRIPTION).value(category.getDescription()))
+                .andExpect(jsonPath(HATEOAS_SELF_HREF, is(LOCALHOST.concat(CATEGORY_URN + "/" + category.getId().toString()))));
     }
 
 }
