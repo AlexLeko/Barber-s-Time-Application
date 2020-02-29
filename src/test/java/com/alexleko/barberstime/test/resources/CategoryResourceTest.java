@@ -5,6 +5,7 @@ import com.alexleko.barberstime.dto.CategoryDTO;
 import com.alexleko.barberstime.resources.CategoryResource;
 import com.alexleko.barberstime.services.CategoryService;
 import com.alexleko.barberstime.services.exceptions.BusinessException;
+import com.alexleko.barberstime.services.exceptions.ObjectNotFoundException;
 import com.alexleko.barberstime.services.exceptions.ServiceExceptionControl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -213,6 +214,35 @@ public class CategoryResourceTest {
                 .andExpect(jsonPath(CATEGORY_ID).value(category.getId()))
                 .andExpect(jsonPath(CATEGORY_DESCRIPTION).value(category.getDescription()))
                 .andExpect(jsonPath(HATEOAS_SELF_HREF, is(LOCALHOST.concat(CATEGORY_URN + "/" + category.getId().toString()))));
+    }
+
+    /* {
+        "timeStamp": 1582994995869,
+        "status": 404,
+        "error": "Data Not Found",
+        "message": "Category with ID: 99 Not Found.",
+        "path": "/v1/categories/99"
+       }
+    */
+    @Test
+    @DisplayName("Deve lançar erro quando a Categotia consultada não existir")
+    public void shouldThrowExceptionWhenCategoryNotFound() throws Exception {
+        Long id = 99L;
+
+        BDDMockito.given(
+                categoryService.findById(id))
+                .willThrow(new ObjectNotFoundException(
+                        String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(CATEGORY_URN.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath(EXCEPTION_ERROR).value("Data Not Found"))
+                .andExpect(jsonPath("message")
+                        .value(String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)));
     }
 
 }
