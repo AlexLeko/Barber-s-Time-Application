@@ -24,8 +24,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.List;
+
 import static com.alexleko.barberstime.test.builders.dto.CategoryDTOBuilder.mockCategoryDTO;
 import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.mockCategory;
+import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.mockCategoryList;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -46,6 +49,8 @@ public class CategoryResourceTest {
     private static final String EXCEPTION_MESSAGE = "message";
 
     private static final String HATEOAS_SELF_HREF = "_links.self.href";
+    private static final String HATEOAS_REL = "_links.rel";
+    private static final String HATEOAS_HREF = "_links.href";
 
 
     @Autowired
@@ -241,8 +246,62 @@ public class CategoryResourceTest {
         mvc.perform(request)
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath(EXCEPTION_ERROR).value("Data Not Found"))
-                .andExpect(jsonPath("message")
+                .andExpect(jsonPath(EXCEPTION_MESSAGE)
                         .value(String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)));
     }
+
+
+    /*[
+        {
+            "id": 1,
+                "description": "leko",
+                "links": [
+                    {
+                        "rel": "find-one",
+                            "href": "http://localhost:8080/v1/categories/1"
+                    }
+                ]
+        }, ... continua 2x...
+    */
+    @Test
+    @DisplayName("Deve retornar uma lista com todas as Categorias")
+    public void shouldRetrieveAllCategories() throws Exception {
+        List<Category> list = mockCategoryList().buildList();
+
+        BDDMockito.given(
+                categoryService.findAll())
+                .willReturn(list);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(CATEGORY_URN.concat("/"))
+                .accept(MediaType.APPLICATION_JSON);
+
+        Long tst = (Long) list.get(0).getId();
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].id", is(1)))
+                .andExpect(jsonPath("$[0].description", is(list.get(0).getDescription())))
+                .andExpect(jsonPath("$[0].links[0].rel", is("find-one")))
+                .andExpect(jsonPath("$[0].links[0].href", is(LOCALHOST.concat(CATEGORY_URN + "/" + 1L))))
+
+                .andExpect(jsonPath("$[1].id", is(2)))
+                .andExpect(jsonPath("$[1].description", is(list.get(1).getDescription())))
+                .andExpect(jsonPath("$[1].links[0].rel", is("find-one")))
+                .andExpect(jsonPath("$[1].links[0].href", is(LOCALHOST.concat(CATEGORY_URN + "/" + 2L))))
+
+                .andExpect(jsonPath("$[2].id", is(3)))
+                .andExpect(jsonPath("$[2].description", is(list.get(2).getDescription())))
+                .andExpect(jsonPath("$[2].links[0].rel", is("find-one")))
+                .andExpect(jsonPath("$[2].links[0].href", is(LOCALHOST.concat(CATEGORY_URN + "/" + 3L))));
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma lista de Categorias paginada ")
+    public void shouldRetrieveCategoriesListPaginated() throws Exception {
+        // todo: implementar test de Categoria com paginação.
+    }
+
 
 }
