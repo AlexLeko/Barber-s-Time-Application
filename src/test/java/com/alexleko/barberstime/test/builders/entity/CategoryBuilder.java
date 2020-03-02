@@ -56,6 +56,12 @@ public class CategoryBuilder {
         return builder;
     }
 
+    public static CategoryBuilder mockCategoryListEmpty(){
+        CategoryBuilder builder = new CategoryBuilder();
+        builder.categoryList = new ArrayList<>();
+        return builder;
+    }
+
     public List<Category> buildList(){
         return categoryList;
     }

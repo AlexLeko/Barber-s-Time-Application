@@ -27,8 +27,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.List;
 
 import static com.alexleko.barberstime.test.builders.dto.CategoryDTOBuilder.mockCategoryDTO;
-import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.mockCategory;
-import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.mockCategoryList;
+import static com.alexleko.barberstime.test.builders.entity.CategoryBuilder.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -47,10 +46,9 @@ public class CategoryResourceTest {
     private static final String EXCEPTION_ERRORS = "errors";
     private static final String EXCEPTION_ERROR = "error";
     private static final String EXCEPTION_MESSAGE = "message";
+    private static final String EXCEPTION_PATH = "path";
 
     private static final String HATEOAS_SELF_HREF = "_links.self.href";
-    private static final String HATEOAS_REL = "_links.rel";
-    private static final String HATEOAS_HREF = "_links.href";
 
 
     @Autowired
@@ -77,6 +75,8 @@ public class CategoryResourceTest {
         CategoryDTO dto = mockCategoryDTO().build();
         Category category = mockCategory().WithId(99L).build();
 
+        String hateoasHref = LOCALHOST.concat(CATEGORY_URN + "/" + category.getId().toString());
+
         BDDMockito.given(
                 categoryService.convertFromDTO(Mockito.any(CategoryDTO.class)))
                 .willReturn(new Category());
@@ -98,7 +98,7 @@ public class CategoryResourceTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(CATEGORY_ID).value(category.getId()))
                 .andExpect(jsonPath(CATEGORY_DESCRIPTION).value(category.getDescription()))
-                .andExpect(jsonPath(HATEOAS_SELF_HREF, is(LOCALHOST.concat(CATEGORY_URN + "/" + category.getId().toString()))));
+                .andExpect(jsonPath(HATEOAS_SELF_HREF, is(hateoasHref)));
     }
 
     @Test
@@ -185,7 +185,8 @@ public class CategoryResourceTest {
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(EXCEPTION_ERROR).value(errorTitle))
-                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(mensagem));
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(mensagem))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(CATEGORY_URN));
     }
 
 
@@ -233,21 +234,25 @@ public class CategoryResourceTest {
     @DisplayName("Deve lançar erro quando a Categotia consultada não existir")
     public void shouldThrowExceptionWhenCategoryNotFound() throws Exception {
         Long id = 99L;
+        String urn = CATEGORY_URN.concat("/" + id);
+
+        ObjectNotFoundException exception = new ObjectNotFoundException(
+                String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id));
 
         BDDMockito.given(
                 categoryService.findById(id))
-                .willThrow(new ObjectNotFoundException(
-                        String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)));
+                .willThrow(exception);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-                .get(CATEGORY_URN.concat("/" + id))
+                .get(urn)
                 .accept(MediaType.APPLICATION_JSON);
 
         mvc.perform(request)
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath(EXCEPTION_ERROR).value("Data Not Found"))
                 .andExpect(jsonPath(EXCEPTION_MESSAGE)
-                        .value(String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)));
+                        .value(String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
     }
 
 
@@ -267,6 +272,41 @@ public class CategoryResourceTest {
     @DisplayName("Deve retornar uma lista com todas as Categorias")
     public void shouldRetrieveAllCategories() throws Exception {
         List<Category> list = mockCategoryList().buildList();
+        String urn = CATEGORY_URN.concat("/");
+
+        BDDMockito.given(
+                categoryService.findAll())
+                .willReturn(list);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(urn)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].id", is(1)))
+                .andExpect(jsonPath("$[0].description", is(list.get(0).getDescription())))
+                .andExpect(jsonPath("$[0].links[0].rel", is("find-one")))
+                .andExpect(jsonPath("$[0].links[0].href", is(LOCALHOST.concat(urn + 1L))))
+
+                .andExpect(jsonPath("$[1].id", is(2)))
+                .andExpect(jsonPath("$[1].description", is(list.get(1).getDescription())))
+                .andExpect(jsonPath("$[1].links[0].rel", is("find-one")))
+                .andExpect(jsonPath("$[1].links[0].href", is(LOCALHOST.concat(urn + 2L))))
+
+                .andExpect(jsonPath("$[2].id", is(3)))
+                .andExpect(jsonPath("$[2].description", is(list.get(2).getDescription())))
+                .andExpect(jsonPath("$[2].links[0].rel", is("find-one")))
+                .andExpect(jsonPath("$[2].links[0].href", is(LOCALHOST.concat(urn + 3L))));
+    }
+
+    // []
+    @Test
+    @DisplayName("Deve retornar uma lista vazia quando não haver Categorias no banco. ")
+    public void shouldRetrieveEmptyArrayWhenThereAreNoCategories() throws Exception {
+
+        List<Category> list = mockCategoryListEmpty().buildList();
 
         BDDMockito.given(
                 categoryService.findAll())
@@ -276,25 +316,9 @@ public class CategoryResourceTest {
                 .get(CATEGORY_URN.concat("/"))
                 .accept(MediaType.APPLICATION_JSON);
 
-        Long tst = (Long) list.get(0).getId();
-
         mvc.perform(request)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[0].id", is(1)))
-                .andExpect(jsonPath("$[0].description", is(list.get(0).getDescription())))
-                .andExpect(jsonPath("$[0].links[0].rel", is("find-one")))
-                .andExpect(jsonPath("$[0].links[0].href", is(LOCALHOST.concat(CATEGORY_URN + "/" + 1L))))
-
-                .andExpect(jsonPath("$[1].id", is(2)))
-                .andExpect(jsonPath("$[1].description", is(list.get(1).getDescription())))
-                .andExpect(jsonPath("$[1].links[0].rel", is("find-one")))
-                .andExpect(jsonPath("$[1].links[0].href", is(LOCALHOST.concat(CATEGORY_URN + "/" + 2L))))
-
-                .andExpect(jsonPath("$[2].id", is(3)))
-                .andExpect(jsonPath("$[2].description", is(list.get(2).getDescription())))
-                .andExpect(jsonPath("$[2].links[0].rel", is("find-one")))
-                .andExpect(jsonPath("$[2].links[0].href", is(LOCALHOST.concat(CATEGORY_URN + "/" + 3L))));
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
@@ -302,6 +326,53 @@ public class CategoryResourceTest {
     public void shouldRetrieveCategoriesListPaginated() throws Exception {
         // todo: implementar test de Categoria com paginação.
     }
+
+    @Test
+    @DisplayName("Deve excluir a Categoria informada")
+    public void shouldDeleteCategory() throws Exception {
+        Long id = 99L;
+
+        BDDMockito.doNothing()
+                    .when(categoryService)
+                    .delete(id);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(CATEGORY_URN.concat("/" + id));
+
+        mvc.perform(request)
+                .andExpect(status().isNoContent());
+    }
+
+    /*{
+        "timeStamp": 1583187917127,
+        "status": 404,
+        "error": "Data Not Found",
+        "message": "Category with ID: 99 Not Found.",
+        "path": "/v1/categories/99"
+      }
+    */
+    @Test
+    @DisplayName("Deve lançar erro quando a Categoria informada não existir.")
+    public void shouldThrowExceptionWhenNotFoundCategory() throws Exception {
+        Long id = 99L;
+        String urn = CATEGORY_URN.concat("/" + id);
+
+        ObjectNotFoundException exception = new ObjectNotFoundException(
+                String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id));
+        String exceptionMessage = String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id);
+
+        BDDMockito.doThrow(exception)
+                .when(categoryService).delete(id);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(urn);
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath(EXCEPTION_ERROR).value("Data Not Found"))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(exceptionMessage))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
+    }
+
 
 
 }
