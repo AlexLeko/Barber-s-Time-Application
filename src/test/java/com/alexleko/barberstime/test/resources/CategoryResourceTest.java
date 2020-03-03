@@ -47,6 +47,7 @@ public class CategoryResourceTest {
     private static final String EXCEPTION_ERROR = "error";
     private static final String EXCEPTION_MESSAGE = "message";
     private static final String EXCEPTION_PATH = "path";
+    private static final String EXCEPTION_NOT_FOUND = "Data Not Found";
 
     private static final String HATEOAS_SELF_HREF = "_links.self.href";
 
@@ -208,7 +209,7 @@ public class CategoryResourceTest {
         Category category = mockCategory().WithId(id).build();
 
         BDDMockito.given(
-                categoryService.findById(id))
+                categoryService.findById(anyLong()))
                 .willReturn(category);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
@@ -239,8 +240,10 @@ public class CategoryResourceTest {
         ObjectNotFoundException exception = new ObjectNotFoundException(
                 String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id));
 
+        String messageNotFound = String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id);
+
         BDDMockito.given(
-                categoryService.findById(id))
+                categoryService.findById(anyLong()))
                 .willThrow(exception);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
@@ -249,9 +252,8 @@ public class CategoryResourceTest {
 
         mvc.perform(request)
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath(EXCEPTION_ERROR).value("Data Not Found"))
-                .andExpect(jsonPath(EXCEPTION_MESSAGE)
-                        .value(String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id)))
+                .andExpect(jsonPath(EXCEPTION_ERROR).value(EXCEPTION_NOT_FOUND))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(messageNotFound))
                 .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
     }
 
@@ -334,7 +336,7 @@ public class CategoryResourceTest {
 
         BDDMockito.doNothing()
                     .when(categoryService)
-                    .delete(id);
+                    .delete(anyLong());
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .delete(CATEGORY_URN.concat("/" + id));
@@ -362,13 +364,13 @@ public class CategoryResourceTest {
         String exceptionMessage = String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id);
 
         BDDMockito.doThrow(exception)
-                .when(categoryService).delete(id);
+                .when(categoryService).delete(anyLong());
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(urn);
 
         mvc.perform(request)
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath(EXCEPTION_ERROR).value("Data Not Found"))
+                .andExpect(jsonPath(EXCEPTION_ERROR).value(EXCEPTION_NOT_FOUND))
                 .andExpect(jsonPath(EXCEPTION_MESSAGE).value(exceptionMessage))
                 .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
     }
@@ -391,6 +393,111 @@ public class CategoryResourceTest {
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath(EXCEPTION_ERROR).value("Request Not Allowed"))
                 .andExpect(jsonPath(EXCEPTION_MESSAGE).value("Request method 'DELETE' not supported"))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(CATEGORY_URN));
+    }
+
+    /* {
+            "content": "CategoryResource",
+            "_links": {
+                "self": {
+                    "href": "http://localhost:8080/v1/categories/99"
+                }
+            }
+        }
+    */
+    @Test
+    @DisplayName("Deve Atualizar a Categoria")
+    public void shouldUpdateCategory() throws Exception {
+        Long id = 99L;
+        CategoryDTO dtoParam = mockCategoryDTO().WithDescription("Novo").build();
+        Category category = mockCategory().build();
+
+        String json = new ObjectMapper().writeValueAsString(dtoParam);
+
+        String url = LOCALHOST.concat(CATEGORY_URN + "/" + id.toString());
+
+        BDDMockito.given(
+                categoryService.convertFromDTO(Mockito.any(CategoryDTO.class)))
+                .willReturn(category);
+
+        BDDMockito.given(
+                categoryService.update(Mockito.any(Category.class)))
+                .willReturn(category);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(CATEGORY_URN.concat("/" + id))
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(HATEOAS_SELF_HREF, is(url)));
+
+    }
+
+    /* {
+            "timestamp": "03-03-2020 07:37:30",
+            "status": 404,
+            "error": "Data Not Found",
+            "message": "Category with ID: 99 Not Found.",
+            "path": "/v1/categories/99"
+       }
+    */
+    @Test
+    @DisplayName("Deve lançar erro ao tentar Atualizar uma Categoria não existente")
+    public void shouldTHrowExceptionWhenTryUpdateCategoryNotFound() throws Exception {
+        Long id = 99L;
+        CategoryDTO dtoParam = mockCategoryDTO().WithDescription("Novo").build();
+        Category category = mockCategory().build();
+
+        String urn = CATEGORY_URN.concat("/" + id);
+        String json = new ObjectMapper().writeValueAsString(dtoParam);
+
+        ObjectNotFoundException exception = new ObjectNotFoundException(
+                String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id));
+
+        String messageNotFound = String.format(ServiceExceptionControl.CATEGORY_NOT_FOUND.getMessage(), id);
+
+        BDDMockito.given(
+                categoryService.convertFromDTO(Mockito.any(CategoryDTO.class)))
+                .willReturn(category);
+
+        BDDMockito.doThrow(exception)
+                .when(categoryService)
+                .update(Mockito.any(Category.class));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(urn)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath(EXCEPTION_ERROR).value(EXCEPTION_NOT_FOUND))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(messageNotFound))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
+    }
+
+    /*{
+        "timestamp": "03-03-2020 08:00:57",
+        "status": 405,
+        "error": "Request Not Allowed",
+        "message": "Request method 'PUT' not supported",
+        "path": "/v1/categories/"
+      }
+    */
+    @Test
+    @DisplayName("Deve lançar erro ao Atualizar sem informar o ID da Categoria.")
+    public void shouldThrowExceptionInUpdateWhenUpdateNotSendCategoryID() throws Exception {
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(CATEGORY_URN);
+
+        mvc.perform(request)
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath(EXCEPTION_ERROR).value("Request Not Allowed"))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value("Request method 'PUT' not supported"))
                 .andExpect(jsonPath(EXCEPTION_PATH).value(CATEGORY_URN));
     }
 
