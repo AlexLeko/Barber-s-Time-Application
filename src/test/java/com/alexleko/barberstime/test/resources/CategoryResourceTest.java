@@ -373,6 +373,25 @@ public class CategoryResourceTest {
                 .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
     }
 
+    /*{
+        "timestamp": "02-03-2020 08:56:57",
+        "status": 405,
+        "error": "Request Not Allowed",
+        "message": "Request method 'DELETE' not supported",
+        "path": "/v1/categories/"
+      }
+    */
+    @Test
+    @DisplayName("Deve lançar erro quando não informar o ID da Categoria.")
+    public void shouldThrowExceptionWhenNotSendCategoryID() throws Exception {
 
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(CATEGORY_URN);
+
+        mvc.perform(request)
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath(EXCEPTION_ERROR).value("Request Not Allowed"))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value("Request method 'DELETE' not supported"))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(CATEGORY_URN));
+    }
 
 }
