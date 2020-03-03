@@ -121,6 +121,19 @@ public class CategoryResourceTest {
         verify(categoryService, never()).convertFromDTO(new CategoryDTO());
     }
 
+    /*{
+        "timestamp": "03-03-2020 08:27:46",
+        "status": 422,
+        "error": "Request field With Validation Error",
+        "message": "Validation failed for argument [0] ...
+        "path": "/v1/categories/99",
+        "errors": [
+            {
+                "fieldName": "description",
+                "message": "The Category Description must be between 3 and 80 characters"
+            }
+        ]
+    }*/
     @Test
     @DisplayName("Deve lançar erro quando a descrição da Categoria for inválida")
     public void shouldThrowExceptionWhenCategoryDTODescriptionInvalid() throws Exception {
@@ -144,8 +157,8 @@ public class CategoryResourceTest {
                 .andExpect(jsonPath(EXCEPTION_ERRORS, hasSize(1)))
                 .andExpect(jsonPath("errors[0].message").value(validationDescription));
 
-        verify(categoryService, never()).convertFromDTO(dto);
-        verify(categoryService, never()).insert(category);
+        verify(categoryService, never()).convertFromDTO(Mockito.any(CategoryDTO.class));
+        verify(categoryService, never()).insert(Mockito.any(Category.class));
     }
 
     /* {
@@ -164,7 +177,7 @@ public class CategoryResourceTest {
         Category category = mockCategory().WithId(99L).build();
 
         String errorTitle = "Attempt insert duplicate";
-        String mensagem = ServiceExceptionControl.EXISTING_CATEGORY.getMessage();
+        String exceptionMessage = ServiceExceptionControl.EXISTING_CATEGORY.getMessage();
 
         String json = new ObjectMapper().writeValueAsString(dto);
 
@@ -174,7 +187,7 @@ public class CategoryResourceTest {
 
         BDDMockito.given(
                 categoryService.insert(Mockito.any(Category.class)))
-                .willThrow(new BusinessException(mensagem));
+                .willThrow(new BusinessException(exceptionMessage));
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(CATEGORY_URN)
@@ -186,7 +199,7 @@ public class CategoryResourceTest {
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(EXCEPTION_ERROR).value(errorTitle))
-                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(mensagem))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(exceptionMessage))
                 .andExpect(jsonPath(EXCEPTION_PATH).value(CATEGORY_URN));
     }
 
@@ -445,8 +458,8 @@ public class CategoryResourceTest {
        }
     */
     @Test
-    @DisplayName("Deve lançar erro ao tentar Atualizar uma Categoria não existente")
-    public void shouldTHrowExceptionWhenTryUpdateCategoryNotFound() throws Exception {
+    @DisplayName("Deve lançar erro ao Atualizar uma Categoria não existente")
+    public void shouldThrowExceptionWhenUpdateCategoryNotFound() throws Exception {
         Long id = 99L;
         CategoryDTO dtoParam = mockCategoryDTO().WithDescription("Novo").build();
         Category category = mockCategory().build();
@@ -500,5 +513,90 @@ public class CategoryResourceTest {
                 .andExpect(jsonPath(EXCEPTION_MESSAGE).value("Request method 'PUT' not supported"))
                 .andExpect(jsonPath(EXCEPTION_PATH).value(CATEGORY_URN));
     }
+
+    /*{
+        "timestamp": "03-03-2020 08:22:19",
+        "status": 400,
+        "error": "Attempt insert duplicate",
+        "message": "This category already exists",
+        "path": "/v1/categories/99"
+    }*/
+    @Test
+    @DisplayName("Deve lançar erro ao Atualizar uma Categoria com descrição já existente.")
+    public void shouldThrowExceptionInUpdateWhenDuplicateDescription() throws Exception {
+        Long id = 99L;
+        CategoryDTO dtoParam = mockCategoryDTO().WithDescription("Novo").build();
+        Category category = mockCategory().build();
+
+        String errorTitle = "Attempt insert duplicate";
+        String exceptionMessage = ServiceExceptionControl.EXISTING_CATEGORY.getMessage();
+
+        String urn = CATEGORY_URN.concat("/" + id);
+        String json = new ObjectMapper().writeValueAsString(dtoParam);
+
+        BDDMockito.given(
+                categoryService.convertFromDTO(Mockito.any(CategoryDTO.class)))
+                .willReturn(category);
+
+        BDDMockito.doThrow(new BusinessException(exceptionMessage))
+                .when(categoryService)
+                .update(Mockito.any(Category.class));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(urn)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath(EXCEPTION_ERROR).value(errorTitle))
+                .andExpect(jsonPath(EXCEPTION_MESSAGE).value(exceptionMessage))
+                .andExpect(jsonPath(EXCEPTION_PATH).value(urn));
+    }
+
+    /*{
+        "timestamp": "03-03-2020 08:27:46",
+        "status": 422,
+        "error": "Request field With Validation Error",
+        "message": "Validation failed for argument [0] ...
+        "path": "/v1/categories/99",
+        "errors": [
+            {
+                "fieldName": "description",
+                "message": "The Category Description must be between 3 and 80 characters"
+            }
+        ]
+    }*/
+    @Test
+    @DisplayName("Deve lançar erro ao Atualizar uma Categoria com descrição inválida")
+    public void shouldThrowExceptionInUpdateWhenInvalidDescription() throws Exception {
+        Long id = 99L;
+        CategoryDTO dtoParam = mockCategoryDTO().WithDescription("LK").build();
+
+        String urn = CATEGORY_URN.concat("/" + id);
+        String json = new ObjectMapper().writeValueAsString(dtoParam);
+
+        String validationDescription = "The Category Description must be between 3 and 80 characters";
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(urn)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath(EXCEPTION_ERRORS).isArray())
+                .andExpect(jsonPath(EXCEPTION_ERRORS, hasSize(1)))
+                .andExpect(jsonPath("errors[0].message").value(validationDescription));
+
+        verify(categoryService, never()).convertFromDTO(Mockito.any(CategoryDTO.class));
+        verify(categoryService, never()).insert(Mockito.any(Category.class));
+    }
+
+
+
+
 
 }

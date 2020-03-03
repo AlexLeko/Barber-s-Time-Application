@@ -38,6 +38,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     public Category update(Category category) {
+        if (categoryRepository.existsByDescription(category.getDescription())) {
+            throw new BusinessException(ServiceExceptionControl.EXISTING_CATEGORY.getMessage());
+        }
+
         Category newCategory = findById(category.getId());
         newCategory.setDescription(category.getDescription());
 
